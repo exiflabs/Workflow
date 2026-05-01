@@ -1,0 +1,23 @@
+{
+  "agent": "advisor",
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Write(.workflow/**)",
+      "Edit(.workflow/**)",
+      "Write(src/**)",
+      "Edit(src/**)",
+      "Write(decisions-log.md)",
+      "Edit(decisions-log.md)",
+      "Edit(CLAUDE.md)",
+      "Edit(.claude/settings.json)",
+      "Bash(git:*)",
+      "Bash(graphify:*)",
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)"
+    ]
+  }
+}
