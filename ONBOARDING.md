@@ -4,17 +4,42 @@ This file sets up the project for first use. Run it once by opening Claude Code 
 
 > Run the ONBOARDING.md
 
-Claude will execute the steps below, ask you a few questions, and delete this file when finished.
+Onboarding has two phases. Phase 1 is a one-step identity check. If the advisor agent isn't active yet, it tells you to restart Claude Code, then halts. Phase 2 (all real install work) only runs once the advisor is active, so you can trust every step.
 
 ---
 
-## Steps for Claude to Execute
+## Phase 1 — Identity Check (any agent)
 
-Execute these in order. Pause for user input where indicated.
+**Before doing anything else, check your identity.**
+
+Inspect your own system prompt frontmatter:
+
+- If your frontmatter contains `name: advisor`, you ARE the advisor. Skip directly to Phase 2 below.
+- If you have NO agent frontmatter (you're default Claude), STOP. Output exactly this and do nothing else:
+
+> **Restart required.**
+>
+> The advisor agent isn't active yet. It needs to load before onboarding can run safely.
+>
+> Quit Claude Code now (Cmd+Q on macOS, or fully exit). Reopen this folder, then send the message:
+>
+> ```
+> Run the ONBOARDING.md
+> ```
+>
+> The agent system only initializes on a fresh session — `/clear` won't reload it.
+
+Do not continue past this point unless you confirmed `name: advisor`.
+
+---
+
+## Phase 2 — Setup (advisor only)
+
+Execute these in order. After each step that creates or modifies a file, verify the result before continuing. If any verification fails, STOP and report the error to the user.
 
 ### 1. Verify Prerequisites
 
-Check that the following are installed. If any are missing, stop and tell the user to install them before continuing.
+Check that the following are installed:
 
 ```bash
 git --version
@@ -22,15 +47,17 @@ gh --version
 uv --version || pipx --version || pip --version
 ```
 
-### 2. Install Graphify
+If any are missing, stop and tell the user to install them before continuing.
 
-Install graphify and its Claude Code integration:
+### 2. Install Graphify
 
 ```bash
 uv tool install graphifyy && graphify install
 ```
 
 If `uv` isn't available, fall back to `pipx install graphifyy && graphify install` or `pip install graphifyy && graphify install`.
+
+**Verify:** `command -v graphify` returns a path. If not, stop.
 
 ### 3. Ask About Git Setup
 
@@ -46,22 +73,22 @@ Wait for the user's response.
 
 ### 4. Reset Git History
 
-Remove the starter repo's git history and start fresh:
+Remove the starter repo's git history:
 
 ```bash
 rm -rf .git
 git init
 ```
 
-### 5. Install Graphify Git Hook
+**Verify:** `.git/` directory exists. If not, stop.
 
-Now that git is initialized, install the hook:
+### 5. Install Graphify Git Hook
 
 ```bash
 graphify hook install
 ```
 
-This auto-rebuilds the knowledge graph on every commit.
+**Verify:** `.git/hooks/post-commit` exists. If not, stop.
 
 ### 6. Ask About Optional TDD Skill
 
@@ -79,21 +106,21 @@ mkdir -p .claude/skills/tdd
 curl -fsSL https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/tdd/SKILL.md -o .claude/skills/tdd/SKILL.md
 ```
 
-Then add `skills: [tdd]` to the frontmatter of `.claude/agents/builder.md` and `.claude/agents/qa.md` (if not already present).
+Then add `skills: [tdd]` to the frontmatter of `.claude/agents/builder.md` and `.claude/agents/qa.md` if not already present.
 
-If no, skip this step.
+**Verify:** `.claude/skills/tdd/SKILL.md` exists. If not, stop.
+
+If user said no, skip this step.
 
 ### 7. Configure Agent Models
 
-For each of the three agents, ask the user which model to use. Present options:
+For each of the three agents, ask which model to use:
 
 > **Advisor model** — handles planning and conversation. Recommended: opus (best reasoning) or sonnet (balanced).
 > 1. opus (recommended)
 > 2. sonnet
 > 3. haiku
 > 4. inherit (uses session default)
-
-Wait for response, then ask the same for **Builder** and **QA**:
 
 > **Builder model** — executes code. Recommended: sonnet (balanced) or opus (for complex work).
 > 1. opus
@@ -107,7 +134,7 @@ Wait for response, then ask the same for **Builder** and **QA**:
 > 3. haiku
 > 4. inherit
 
-After collecting all three answers, edit the `model:` field in each agent's frontmatter (`.claude/agents/advisor.md`, `builder.md`, `qa.md`) to match the user's selection. Map their answer to the alias: `opus`, `sonnet`, `haiku`, or `inherit`.
+After collecting all three answers, edit the `model:` field in each agent file (`.claude/agents/advisor.md`, `builder.md`, `qa.md`).
 
 ### 8. Configure Remote (Based on Step 3 Choice)
 
@@ -144,28 +171,33 @@ git branch -M main
 git push -u origin main
 ```
 
-**Do not delete ONBOARDING.md yet.** Deletion happens in the post-restart verification step below.
+### 10. Remove This File
 
-### 10. Restart Required — Final Message to User
+```bash
+rm ONBOARDING.md
+git add ONBOARDING.md
+git commit -m "remove onboarding file"
+git push 2>/dev/null || true
+```
 
-Output exactly this to the chat:
+### 11. Final Message — Reference Card
 
-> **Setup is 90% done. One more step.**
+Output exactly this to the user:
+
+> **Setup complete. Advisor is active and ready.**
 >
-> Quit Claude Code now (Cmd+Q on macOS, or fully exit). Reopen this folder, then send the message:
+> **Useful commands:**
+> - `/whoami` — confirms which agent is active. Run anytime you're unsure.
+> - `/set-model <agent> <model>` — change the model used by advisor, builder, or qa. Models: `opus`, `sonnet`, `haiku`, `inherit`.
 >
-> ```
-> /verify-onboarding
-> ```
+> **If `/whoami` ever returns "default Claude":** the agent system didn't load. Verify `.claude/settings.json` still has `"agent": "advisor"` and the `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` env var, then fully quit Claude Code (Cmd+Q) and reopen. `/clear` alone won't reload agent settings.
 >
-> This finalizes setup by confirming the advisor agent is active. The `agent` and `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` settings only take effect on a fresh session — `/clear` won't pick them up.
->
-> ONBOARDING.md will be removed automatically once verification succeeds.
+> Edit `CLAUDE.md` to add project-specific context (tech stack, conventions, domain rules), or start your first task.
 
 ---
 
 ## Notes
 
-- If any step fails, stop and report the error to the user. Don't continue.
-- Don't skip the prerequisite check — missing tools cause silent failures later.
+- Phase 1's identity check is non-negotiable. Default Claude must NOT proceed past Phase 1.
+- If any verification step in Phase 2 fails, stop immediately and report — don't try to continue.
 - The `rm -rf .git` step is the only destructive operation. It's intentional and safe because this is a starter scaffold.
