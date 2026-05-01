@@ -10,7 +10,7 @@ This project uses an advisor/builder agent workflow.
 ```
 src/                     # All project code lives here
 src/tests/               # All tests live here
-.workflow/tasks/         # One MD file per task, named by slug
+workflow/tasks/         # One MD file per task, named by slug
 graphify-out/            # Knowledge graph (auto-updated on commit)
 .claude/agents/          # Agent definitions
 .claude/agent-memory/    # Persistent agent memory (committed to version control)
@@ -131,8 +131,8 @@ Graphify provides background context at `graphify-out/`. Priority when info conf
 
 - Read `graphify-out/GRAPH_REPORT.md` before answering architecture questions
 - Git post-commit hook auto-rebuilds the **code graph** (AST-only, free)
-- For doc/MD indexing including `.workflow/tasks/`, `/graphify --update` is run only when the user explicitly opts in (uses API calls). After a push to origin or merge, the advisor will ask "Would you like to update Graphify?" — yes runs it, no/ignore skips it. Never automatic.
-- For task history, read `.workflow/tasks/` files directly — graphify isn't needed for that
+- For doc/MD indexing including `workflow/tasks/`, `/graphify --update` is run only when the user explicitly opts in (uses API calls). After a push to origin or merge, the advisor will ask "Would you like to update Graphify?" — yes runs it, no/ignore skips it. Never automatic.
+- For task history, read `workflow/tasks/` files directly — graphify isn't needed for that
 
 ---
 

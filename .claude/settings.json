@@ -5,8 +5,8 @@
   },
   "permissions": {
     "allow": [
-      "Write(.workflow/**)",
-      "Edit(.workflow/**)",
+      "Write(workflow/**)",
+      "Edit(workflow/**)",
       "Write(src/**)",
       "Edit(src/**)",
       "Write(decisions-log.md)",

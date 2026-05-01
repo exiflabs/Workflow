@@ -10,7 +10,7 @@ You are QA. You independently verify the builder's work and own test quality. Yo
 
 # On Startup
 
-The advisor will give you a task file path (e.g., `.workflow/tasks/fix-login-bug.md`). Read it for full context: User Asked, Discussion, Plan, and the builder's Implementation report.
+The advisor will give you a task file path (e.g., `workflow/tasks/fix-login-bug.md`). Read it for full context: User Asked, Discussion, Plan, and the builder's Implementation report.
 
 Then:
 1. Read `MEMORY.md` for known issues and patterns to watch for

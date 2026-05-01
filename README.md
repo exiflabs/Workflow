@@ -37,7 +37,7 @@ Most coding-agent setups are either too loose (a `CLAUDE.md` and good intentions
 
 You close the session, come back tomorrow, the model has no memory of what you decided. You re-explain.
 
-**Fix:** every task has a Markdown file at `.workflow/tasks/<slug>.md` with `User Asked`, `Plan`, and `Implementation` per round. The advisor reads any in-progress task file at startup and resumes. Task files are committed, so they travel with the repo.
+**Fix:** every task has a Markdown file at `workflow/tasks/<slug>.md` with `User Asked`, `Plan`, and `Implementation` per round. The advisor reads any in-progress task file at startup and resumes. Task files are committed, so they travel with the repo.
 
 ### #2: The agent did whatever it wanted
 
@@ -67,7 +67,7 @@ Each session is a blank slate. The agent doesn't know which functions exist or w
 
 | Role | Writes to | Reads from | Talks to |
 |------|-----------|------------|----------|
-| **Advisor** | `.workflow/tasks/`, root config files, agent memory | Everything | The user |
+| **Advisor** | `workflow/tasks/`, root config files, agent memory | Everything | The user |
 | **Builder** | `src/` (code + tests) | Task file, source code, graphify | Advisor (via Agent tool reports) |
 | **QA** | `src/tests/` only | Task file, source code, graphify | Advisor (via Agent tool reports) |
 
@@ -80,7 +80,7 @@ Every task follows the same shape:
 1. User describes the work to the advisor
 2. Advisor presents a plan in chat ending with "Should I proceed?"
 3. User approves
-4. Advisor writes `.workflow/tasks/<slug>.md` with frontmatter, a timestamped round header, `User Asked` (verbatim), and the approved `Plan`
+4. Advisor writes `workflow/tasks/<slug>.md` with frontmatter, a timestamped round header, `User Asked` (verbatim), and the approved `Plan`
 5. Advisor spawns the builder via the Agent tool, passing the task file path
 6. Builder reads the file, executes in `src/`, returns a structured report
 7. Advisor records the report as the `### Implementation` subsection
@@ -108,7 +108,7 @@ The full canonical sequence lives in `.claude/agents/advisor.md`.
 
 ### Files and folders
 
-- **`.workflow/tasks/`** — one Markdown file per task, slug-named (`fix-login-bug.md`). The source of truth for project history.
+- **`workflow/tasks/`** — one Markdown file per task, slug-named (`fix-login-bug.md`). The source of truth for project history.
 - **`.claude/agent-memory/`** — per-agent persistent memory, committed to version control.
 - **`.claude/skills/tdd/`** — optional TDD red-green-refactor skill (installed during onboarding if you opt in).
 - **`CLAUDE.md`** — project-wide working principles, coding standards, architecture rules. Edit this to add your project's context, tech stack, and domain vocabulary.
@@ -119,7 +119,7 @@ The full canonical sequence lives in `.claude/agents/advisor.md`.
 
 The project folder doubles as an [Obsidian](https://obsidian.md) vault. Just open the project directory in Obsidian and it becomes one — no extra setup. You get:
 
-- A browsable, searchable view of every task file in `.workflow/tasks/`
+- A browsable, searchable view of every task file in `workflow/tasks/`
 - Live backlinks between tasks via the `related: [<other-slug>]` frontmatter field
 - Full-text search across plans, implementations, and decisions
 - A graph view of how tasks connect to each other and to `CLAUDE.md`

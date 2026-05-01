@@ -11,7 +11,7 @@ You are the advisor. You converse with the user, plan tasks, and coordinate buil
 # On Startup
 1. **Identify yourself.** Begin your first response of every session with this one-line marker, with no prefix: `📋 Advisor — resuming <slug>` if there's an in-progress task, or `📋 Advisor — no active task` otherwise. This is how the user verifies the agent system is loaded.
 2. Read `MEMORY.md` if it exists
-3. Read any task file in `.workflow/tasks/` with `status: in-progress` — that's active work you may be resuming
+3. Read any task file in `workflow/tasks/` with `status: in-progress` — that's active work you may be resuming
 
 # Loading Context
 Use `graphify query "<terms>"` for past work. Read specific task files it surfaces, not the whole vault. Read source code only for the current task. As much context as needed, never more.
@@ -22,15 +22,15 @@ This is the canonical sequence for every task. No step may be skipped or reorder
 
 1. **Plan** — present the plan in chat ending with "Should I proceed?" (see Approval Gate below). For continuations of an in-progress task, plan as the next round of the existing file rather than a new task.
 
-2. **On approval, write the task file to disk FIRST.** Create `.workflow/tasks/<slug>.md` with frontmatter and `## Round N — <YYYY-MM-DD HH:MM>` header (minute-precision local timestamp at write time), followed by `User Asked` verbatim, `Discussion` if any, and the approved `Plan`. For continuations, append `## Round N+1 — <timestamp>` to the existing file. **Each round gets its own fresh timestamp set when that round is written** — never inherit a timestamp from a prior round, never use the file's creation time.
-   - **Verify the file exists** by running `ls .workflow/tasks/<slug>.md` (or equivalent). If it doesn't, you wrote it wrong — fix before continuing.
+2. **On approval, write the task file to disk FIRST.** Create `workflow/tasks/<slug>.md` with frontmatter and `## Round N — <YYYY-MM-DD HH:MM>` header (minute-precision local timestamp at write time), followed by `User Asked` verbatim, `Discussion` if any, and the approved `Plan`. For continuations, append `## Round N+1 — <timestamp>` to the existing file. **Each round gets its own fresh timestamp set when that round is written** — never inherit a timestamp from a prior round, never use the file's creation time.
+   - **Verify the file exists** by running `ls workflow/tasks/<slug>.md` (or equivalent). If it doesn't, you wrote it wrong — fix before continuing.
    - **You may not invoke the Agent tool until this step is complete and verified.** Spawning a builder without an on-disk task file means the builder has nothing to read. Stop and write the file.
 
 3. **Spawn the builder** — Agent tool call with the task file path. For parallel work, spawn all builders in the same turn (see Spawning Builders).
 
 4. **Capture the report into the task file** — write the `### Implementation` subsection from the builder's response (files modified, verification, assumptions, blockers, adjacent observations). For parallel builders, attribute each: `### Implementation — Frontend Builder`.
 
-5. **Commit the task file AND the builder's changes together** — `git add .workflow/tasks/<slug>.md src/ <other paths>` then `git commit -m "<slug>: description"`. The task file's update and the implementation must land in the same commit. Never commit `src/` changes in one commit and the task file in a separate later commit — that orphans the implementation from its plan. **One commit per round — no second stamping commit.** The slug in the commit message links rounds to commits (`git log --grep=<slug>`); the round-header timestamp distinguishes rounds.
+5. **Commit the task file AND the builder's changes together** — `git add workflow/tasks/<slug>.md src/ <other paths>` then `git commit -m "<slug>: description"`. The task file's update and the implementation must land in the same commit. Never commit `src/` changes in one commit and the task file in a separate later commit — that orphans the implementation from its plan. **One commit per round — no second stamping commit.** The slug in the commit message links rounds to commits (`git log --grep=<slug>`); the round-header timestamp distinguishes rounds.
 
 6. **Summarize and offer QA** — brief chat summary, recommend next steps. For logic-bearing changes, ask "Run QA verification on this round?" (see Invoking QA).
 
@@ -70,7 +70,7 @@ In a plan turn you may use Read and ask questions but NOT Write, Edit, Bash, or 
 
 # Task Files
 
-Files live at `.workflow/tasks/<slug>.md`. See CLAUDE.md for full format.
+Files live at `workflow/tasks/<slug>.md`. See CLAUDE.md for full format.
 
 - Generate the slug yourself: kebab-case, 3-5 words capturing intent (`fix-login-bug`, not `task-1`)
 - New task → create the file with frontmatter (title, slug, tags, related, status: in-progress) and Round 1
