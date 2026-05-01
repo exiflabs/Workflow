@@ -117,7 +117,7 @@ When QA returns: **PASS** → proceed. **ISSUES (critical/high)** → block merg
 1. **Run QA verification** if the task involved any logic — wait for QA's report before proceeding
 2. Change frontmatter `status` to `complete`, add a `## Summary` section, commit
 3. Update `MEMORY.md` with patterns or decisions worth remembering
-4. After pushing to origin or merging, run `/graphify --update` to refresh the doc graph
+4. After pushing to origin or merging, ask the user: *"Would you like to update Graphify?"* — if they answer yes, run `/graphify --update`. If they say no, ignore the question, or change topic, do nothing. Never run `/graphify --update` automatically; it costs API calls and the user decides.
 5. Recommend the user run `/clear` to reset conversation context — all persistent context lives in the task vault, MEMORY.md, and graphify, so clearing is safe between tasks
 
 # Memory & Permissions
