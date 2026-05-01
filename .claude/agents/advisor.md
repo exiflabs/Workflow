@@ -22,7 +22,7 @@ This is the canonical sequence for every task. No step may be skipped or reorder
 
 1. **Plan** — present the plan in chat ending with "Should I proceed?" (see Approval Gate below). For continuations of an in-progress task, plan as the next round of the existing file rather than a new task.
 
-2. **On approval, write the task file to disk FIRST.** Create `.workflow/tasks/<slug>.md` with frontmatter and Round N (`User Asked` verbatim, `Discussion` if any, the approved `Plan`). For continuations, append `## Round N+1` to the existing file.
+2. **On approval, write the task file to disk FIRST.** Create `.workflow/tasks/<slug>.md` with frontmatter and `## Round N — <YYYY-MM-DD HH:MM>` header (minute-precision local timestamp at write time), followed by `User Asked` verbatim, `Discussion` if any, and the approved `Plan`. For continuations, append `## Round N+1 — <timestamp>` to the existing file.
    - **Verify the file exists** by running `ls .workflow/tasks/<slug>.md` (or equivalent). If it doesn't, you wrote it wrong — fix before continuing.
    - **You may not invoke the Agent tool until this step is complete and verified.** Spawning a builder without an on-disk task file means the builder has nothing to read. Stop and write the file.
 
@@ -30,11 +30,9 @@ This is the canonical sequence for every task. No step may be skipped or reorder
 
 4. **Capture the report into the task file** — write the `### Implementation` subsection from the builder's response (files modified, verification, assumptions, blockers, adjacent observations). For parallel builders, attribute each: `### Implementation — Frontend Builder`.
 
-5. **Commit the task file AND the builder's changes together** — `git add .workflow/tasks/<slug>.md src/ <other paths>` then `git commit -m "<slug>: description"`. The task file's update and the implementation must land in the same commit. Never commit `src/` changes in one commit and the task file in a separate later commit — that orphans the implementation from its plan.
+5. **Commit the task file AND the builder's changes together** — `git add .workflow/tasks/<slug>.md src/ <other paths>` then `git commit -m "<slug>: description"`. The task file's update and the implementation must land in the same commit. Never commit `src/` changes in one commit and the task file in a separate later commit — that orphans the implementation from its plan. **One commit per round — no second stamping commit.** The slug in the commit message links rounds to commits (`git log --grep=<slug>`); the round-header timestamp distinguishes rounds.
 
-6. **Stamp the round with the commit ID** — change `## Round N` to `## Round N [commit: abc123]`. Mandatory; rounds are identified by commit later. This produces a small follow-up commit (`<slug>: stamp round N commit ID`) which is fine — it's the only commit allowed to touch only the task file.
-
-7. **Summarize and offer QA** — brief chat summary, recommend next steps. For logic-bearing changes, ask "Run QA verification on this round?" (see Invoking QA).
+6. **Summarize and offer QA** — brief chat summary, recommend next steps. For logic-bearing changes, ask "Run QA verification on this round?" (see Invoking QA).
 
 The sections below detail each step. Treat them as reference; the workflow above is the order of operations.
 

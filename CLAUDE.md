@@ -34,7 +34,7 @@ One file per task, named by kebab-case slug (e.g., `fix-login-bug.md`). Rounds o
 - `### Plan` — approved plan with steps and verification
 - `### Implementation` — what was built, including verification (filled by advisor after builder finishes)
 
-Round headers include the commit ID: `## Round N [commit: abc123]`
+Round headers include a minute-precision timestamp: `## Round N — 2026-05-01 14:23`. Commits link back to rounds via the slug convention — `git log --grep=<slug>` enumerates all commits for a task, and the round-header timestamp matches the commit time.
 
 ## Commit Convention
 
