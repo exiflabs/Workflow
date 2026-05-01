@@ -28,7 +28,7 @@ claude
 The onboarding command:
 
 - Verifies prerequisites (`git`, `gh`, `uv` / `pipx` / `pip`)
-- Installs [`graphify`](https://pypi.org/project/graphifyy/) and its post-commit hook
+- Installs [`graphify`](https://github.com/safishamsi/graphify) and its post-commit hook
 - Resets the scaffold's git history so your project starts clean
 - Optionally installs the [TDD skill](https://github.com/mattpocock/skills/tree/main/skills/engineering/tdd) by Matt Pocock
 - Asks which model each agent should use (advisor / builder / QA)
@@ -55,7 +55,7 @@ Most coding-agent setups are either **too loose** (a `CLAUDE.md` and good intent
 
 > "Always take small, deliberate steps. Never take on a task that's too big."
 >
-> David Thomas & Andrew Hunt, [The Pragmatic Programmer](https://www.amazon.co.uk/Pragmatic-Programmer-Anniversary-Journey-Mastery/dp/B0833F1T3V)
+> David Thomas & Andrew Hunt, *The Pragmatic Programmer*
 
 **The Problem.** You ask for a thing. The agent gives you the thing plus three improvements you didn't ask for, plus a refactor you'll spend an hour reading. Or it skips planning entirely and starts writing code.
 
@@ -77,11 +77,11 @@ Most coding-agent setups are either **too loose** (a `CLAUDE.md` and good intent
 
 > "A program is shaped by being read as much as by being written."
 >
-> Donald Knuth, [Literate Programming](https://www.amazon.co.uk/Literate-Programming-Center-Language-Information/dp/0937073806)
+> Donald Knuth, *Literate Programming*
 
 **The Problem.** Each Claude Code session is a blank slate. The agent doesn't know which functions exist, which modules call which, or what the project's domain language is.
 
-**The Fix.** Every commit triggers [graphify](https://pypi.org/project/graphifyy/), which extracts an AST graph of the codebase into `graphify-out/`. Agents can run `graphify query "<terms>"` to pull relevant project context before starting work. This is free (AST-only, no LLM). At task-completion checkpoints, the advisor will *ask* if you want to also run `/graphify --update` for an LLM-powered re-index of your Markdown — opt-in, never automatic.
+**The Fix.** Every commit triggers [graphify](https://github.com/safishamsi/graphify), which extracts an AST graph of the codebase into `graphify-out/`. Agents can run `graphify query "<terms>"` to pull relevant project context before starting work. This is free (AST-only, no LLM). At task-completion checkpoints, the advisor will *ask* if you want to also run `/graphify --update` for an LLM-powered re-index of your Markdown — opt-in, never automatic.
 
 ## How The Agents Divide Work
 
@@ -108,22 +108,22 @@ Every task follows the same shape:
 9. Advisor offers QA verification for logic-bearing changes
 10. On task completion, advisor asks whether to run `/graphify --update`
 
-The full canonical sequence lives in [`.claude/agents/advisor.md`](./.claude/agents/advisor.md).
+The full canonical sequence lives in `.claude/agents/advisor.md`.
 
 ## Reference
 
 ### Agents
 
-- **[advisor](./.claude/agents/advisor.md)** — converses with the user, plans tasks, writes the task vault, coordinates builders, runs QA. Never executes code in `src/`.
-- **[builder](./.claude/agents/builder.md)** — executes plans in `src/`. Reads the task file, does the work, reports back. Never converses with the user.
-- **[qa](./.claude/agents/qa.md)** — independently verifies builder output. Runs tests, inspects code, returns a verdict with severity-tagged findings. Can edit tests; never touches production code.
+- **advisor** — converses with the user, plans tasks, writes the task vault, coordinates builders, runs QA. Never executes code in `src/`.
+- **builder** — executes plans in `src/`. Reads the task file, does the work, reports back. Never converses with the user.
+- **qa** — independently verifies builder output. Runs tests, inspects code, returns a verdict with severity-tagged findings. Can edit tests; never touches production code.
 
 ### Slash commands
 
-- **[`/onboard`](./.claude/commands/onboard.md)** — first-time project setup. Idempotent.
-- **[`/whoami`](./.claude/commands/whoami.md)** — print which agent is active in this session. Returns "default Claude" if the agent system didn't load.
-- **[`/set-model`](./.claude/commands/set-model.md)** — change a per-agent model. Usage: `/set-model advisor opus`. Models: `opus`, `sonnet`, `haiku`, `inherit`.
-- **[`/yolo`](./.claude/commands/yolo.md)** — skip the approval gate for a single task.
+- **`/onboard`** — first-time project setup. Idempotent.
+- **`/whoami`** — print which agent is active in this session. Returns "default Claude" if the agent system didn't load.
+- **`/set-model`** — change a per-agent model. Usage: `/set-model advisor opus`. Models: `opus`, `sonnet`, `haiku`, `inherit`.
+- **`/yolo`** — skip the approval gate for a single task.
 - **`/graphify`** — query the project knowledge graph (added by `graphify install`). `/graphify --update` re-indexes Markdown using an LLM (uses API calls).
 
 ### Files and folders
@@ -131,11 +131,11 @@ The full canonical sequence lives in [`.claude/agents/advisor.md`](./.claude/age
 - **`.workflow/tasks/`** — one Markdown file per task, slug-named (`fix-login-bug.md`). The source of truth for project history.
 - **`.claude/agent-memory/`** — per-agent persistent memory, committed to version control.
 - **`.claude/skills/tdd/`** — optional TDD red-green-refactor skill (installed during onboarding if you opt in).
-- **[`CLAUDE.md`](./CLAUDE.md)** — project-wide working principles, coding standards, architecture rules. Edit this to add your project's context, tech stack, and domain vocabulary.
+- **`CLAUDE.md`** — project-wide working principles, coding standards, architecture rules. Edit this to add your project's context, tech stack, and domain vocabulary.
 - **`src/`** — your project code (initially empty).
 - **`graphify-out/`** — knowledge graph artifacts (created on first commit that touches code files).
 
 ## Acknowledgements
 
 - The optional TDD skill is from Matt Pocock's [Skills For Real Engineers](https://github.com/mattpocock/skills). When enabled, the builder follows red-green-refactor with vertical slicing on every behavior change. Highly recommended.
-- [`graphify`](https://pypi.org/project/graphifyy/) provides the codebase knowledge graph that agents query for context.
+- [`graphify`](https://github.com/safishamsi/graphify) provides the codebase knowledge graph that agents query for context.
