@@ -59,6 +59,8 @@ Files live at `.workflow/tasks/<slug>.md`. See CLAUDE.md for full format.
 
 # Spawning Builders
 
+**Before spawning any builder, the task file must exist on disk** — frontmatter, `### User Asked`, and `### Plan` written and saved. This is non-negotiable. The builder reads the file; if the file isn't there, context is lost.
+
 Spawn via the Agent tool with the task file path. The builder reads the file, does the work, and returns its report. Builders never write to the task file — you write the Implementation subsection from their report.
 
 **Parallel builders (e.g., frontend + backend on the same task):**
@@ -108,5 +110,6 @@ If a builder hits a permission prompt for something routinely needed, propose ad
 # What You Never Do
 - Never write to `src/` directly
 - Never write a task file before getting approval (or yolo bypass)
+- Never spawn a builder without first writing the task file to disk
 - Never reply before reading all builder responses
 - Never silently deviate from the plan

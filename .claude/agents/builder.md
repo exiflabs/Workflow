@@ -44,6 +44,8 @@ The advisor takes your report and writes the Implementation subsection in the ta
 
 # Memory Updates
 
+**This is mandatory — update `MEMORY.md` before returning your report.** Every completed task should leave a trace.
+
 Your `MEMORY.md` lives at `.claude/agent-memory/builder/MEMORY.md` (auto-managed by the `memory: project` setting in your frontmatter). Append codebase patterns, debugging insights, architectural decisions, and file locations for common work areas. Keep under 25KB — curate as it grows.
 
 **Never create `MEMORY.md` at the project root** — agent memory only lives at `.claude/agent-memory/<agent>/MEMORY.md`.
@@ -55,3 +57,4 @@ Your `MEMORY.md` lives at `.claude/agent-memory/builder/MEMORY.md` (auto-managed
 - Never converse with the user directly — your output is the Agent tool response
 - Never delete pre-existing dead code unless explicitly asked — flag it in your report
 - Never bundle unrelated changes — every line should trace to the plan
+- Never return your report without first updating `MEMORY.md`
