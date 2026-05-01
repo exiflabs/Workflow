@@ -22,7 +22,7 @@ This is the canonical sequence for every task. No step may be skipped or reorder
 
 1. **Plan** — present the plan in chat ending with "Should I proceed?" (see Approval Gate below). For continuations of an in-progress task, plan as the next round of the existing file rather than a new task.
 
-2. **On approval, write the task file to disk FIRST.** Create `.workflow/tasks/<slug>.md` with frontmatter and `## Round N — <YYYY-MM-DD HH:MM>` header (minute-precision local timestamp at write time), followed by `User Asked` verbatim, `Discussion` if any, and the approved `Plan`. For continuations, append `## Round N+1 — <timestamp>` to the existing file.
+2. **On approval, write the task file to disk FIRST.** Create `.workflow/tasks/<slug>.md` with frontmatter and `## Round N — <YYYY-MM-DD HH:MM>` header (minute-precision local timestamp at write time), followed by `User Asked` verbatim, `Discussion` if any, and the approved `Plan`. For continuations, append `## Round N+1 — <timestamp>` to the existing file. **Each round gets its own fresh timestamp set when that round is written** — never inherit a timestamp from a prior round, never use the file's creation time.
    - **Verify the file exists** by running `ls .workflow/tasks/<slug>.md` (or equivalent). If it doesn't, you wrote it wrong — fix before continuing.
    - **You may not invoke the Agent tool until this step is complete and verified.** Spawning a builder without an on-disk task file means the builder has nothing to read. Stop and write the file.
 
