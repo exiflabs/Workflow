@@ -144,24 +144,23 @@ git branch -M main
 git push -u origin main
 ```
 
-### 10. Delete This File
+**Do not delete ONBOARDING.md yet.** Deletion happens in the post-restart verification step below.
 
-```bash
-rm ONBOARDING.md
-git add ONBOARDING.md
-git commit -m "remove onboarding file"
-git push 2>/dev/null || true
-```
+### 10. Restart Required — Final Message to User
 
-### 11. Final Message to User
+Output exactly this to the chat:
 
-Output the following to the chat:
-
-> Setup complete.
+> **Setup is 90% done. One more step.**
 >
-> **Important:** Restart Claude Code in this project for the agent teams setting to take effect.
+> Quit Claude Code now (Cmd+Q on macOS, or fully exit). Reopen this folder, then send the message:
 >
-> Once restarted, you can start working with the advisor. Edit `CLAUDE.md` to add your project-specific context (tech stack, conventions, etc.) when ready.
+> ```
+> /verify-onboarding
+> ```
+>
+> This finalizes setup by confirming the advisor agent is active. The `agent` and `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` settings only take effect on a fresh session — `/clear` won't pick them up.
+>
+> ONBOARDING.md will be removed automatically once verification succeeds.
 
 ---
 
