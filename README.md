@@ -13,17 +13,9 @@ git clone https://github.com/exiflabs/Workflow.git my-project
 cd my-project
 ```
 
-2. Open Claude Code in that directory (a fresh session — not a `/clear` of an existing one):
+2. Open the Claude desktop app and start a **new session** in the project folder (not a `/clear` of an existing one).
 
-```bash
-claude
-```
-
-3. In the Claude Code session, run:
-
-```
-/onboard
-```
+3. Run the `/onboard` skill.
 
 The onboarding command:
 
@@ -35,53 +27,41 @@ The onboarding command:
 - Configures a remote (new GitHub repo, existing repo, or local-only)
 - Makes the initial commit and pushes if a remote is set
 
-If the first `/onboard` outputs "Restart required", quit Claude Code (Cmd+Q on macOS, or fully exit), reopen the folder, and run `/onboard` again. The agent system bootstraps on session start; `/clear` won't reload it.
+If the first `/onboard` outputs "Restart required", fully quit the Claude app (Cmd+Q on macOS), reopen the folder, and run `/onboard` again. The agent system bootstraps on session start; `/clear` won't reload it.
 
 ## Why This Exists
 
-Most coding-agent setups are either **too loose** (a `CLAUDE.md` and good intentions, easy to drift) or **too rigid** (fully scripted frameworks that fight you when reality diverges from their happy path). This scaffold targets the failure modes that show up in the middle.
+Most coding-agent setups are either too loose (a `CLAUDE.md` and good intentions) or too rigid (fully scripted frameworks that fight you when reality diverges). This scaffold targets the failure modes that show up in the middle.
 
-### #1: Context Loss Between Sessions
+### #1: Context loss between sessions
 
-> "Without ceremony, you don't have a process — you have a hope."
->
-> Anonymous, every project that's ever lost its history
+You close the session, come back tomorrow, the model has no memory of what you decided. You re-explain.
 
-**The Problem.** You finish a task, close Claude Code, come back tomorrow. The model has no memory of what you discussed, what you decided not to do, or what didn't work. You re-explain.
+**Fix:** every task has a Markdown file at `.workflow/tasks/<slug>.md` with `User Asked`, `Plan`, and `Implementation` per round. The advisor reads any in-progress task file at startup and resumes. Task files are committed, so they travel with the repo.
 
-**The Fix.** Every task has a Markdown file at `.workflow/tasks/<slug>.md`. Each round of back-and-forth is a section within that file: `User Asked` (verbatim), `Discussion`, `Plan`, `Implementation`. Closing and reopening a session is safe — the advisor reads any in-progress task file at startup and resumes from there. Task files are committed to version control, so they travel with the repo.
+### #2: The agent did whatever it wanted
 
-### #2: The Agent Did Whatever It Wanted
+You ask for a thing, the agent gives you the thing plus three improvements you didn't ask for. Or it skips planning entirely and starts writing code.
 
-> "Always take small, deliberate steps. Never take on a task that's too big."
->
-> David Thomas & Andrew Hunt, *The Pragmatic Programmer*
+**Fix:** a strict approval gate between plan and execution. The advisor presents a plan ending in "Should I proceed?". No writes, edits, or builder calls fire until you say yes. A `/yolo` bypass exists for one-off small changes.
 
-**The Problem.** You ask for a thing. The agent gives you the thing plus three improvements you didn't ask for, plus a refactor you'll spend an hour reading. Or it skips planning entirely and starts writing code.
+### #3: Plans drift mid-build
 
-**The Fix.** A strict approval gate between planning and execution. The advisor presents a plan in chat ending with "Should I proceed?". No `Write`, `Edit`, `Bash`, or `Agent` calls fire until you say yes. A `/yolo` bypass exists for one-off small changes when the gate is friction you don't want.
+The agent ships code that doesn't match the plan, and later you can't tell what was decided vs. what was added on the fly.
 
-### #3: Plans Drift Mid-Build
+**Fix:** the task file is written to disk *before* the builder is spawned. The builder reads the plan, executes within it, and reports back. The advisor records the implementation in the same task file in the same commit as the source changes. Plan and code never separate.
 
-**The Problem.** The agent ships code that doesn't match the plan. Later, you can't tell what was decided vs. what was added on the fly.
+### #4: No independent verification
 
-**The Fix.** The task file is written to disk **before** the builder is spawned. The builder reads the plan, executes within it, and reports back as a structured Agent tool response. The advisor records the implementation as the `### Implementation` subsection of the same task file, in the same commit as the source changes. Plan and code never separate.
+The agent writes the code AND the tests AND tells you it works. No second pair of eyes.
 
-### #4: No Independent Verification
+**Fix:** a separate QA agent. After a logic-bearing round, the advisor offers QA. QA reads the task file, runs tests, inspects code, and returns `PASS` / `PASS WITH NOTES` / `ISSUES FOUND` with severity-tagged findings. QA can edit tests but never production code.
 
-**The Problem.** The agent writes the code AND writes the tests AND tells you it works. There's no second pair of eyes between the implementer and the verifier.
+### #5: The agent forgets the project
 
-**The Fix.** A separate QA agent. After any logic-bearing round, the advisor offers QA verification. QA reads the task file, runs the tests, inspects the code the builder produced, and returns a `PASS` / `PASS WITH NOTES` / `ISSUES FOUND` verdict with severity-tagged findings. QA can edit test files but never production code — keeping the role honest.
+Each session is a blank slate. The agent doesn't know which functions exist or what the domain language is.
 
-### #5: The Agent Forgets The Project It's Working On
-
-> "A program is shaped by being read as much as by being written."
->
-> Donald Knuth, *Literate Programming*
-
-**The Problem.** Each Claude Code session is a blank slate. The agent doesn't know which functions exist, which modules call which, or what the project's domain language is.
-
-**The Fix.** Every commit triggers [graphify](https://github.com/safishamsi/graphify), which extracts an AST graph of the codebase into `graphify-out/`. Agents can run `graphify query "<terms>"` to pull relevant project context before starting work. This is free (AST-only, no LLM). At task-completion checkpoints, the advisor will *ask* if you want to also run `/graphify --update` for an LLM-powered re-index of your Markdown — opt-in, never automatic.
+**Fix:** every commit triggers [graphify](https://github.com/safishamsi/graphify), which extracts an AST graph into `graphify-out/`. Agents query it with `graphify query "<terms>"` for codebase context before starting work — free, AST-only, no LLM. At task-completion checkpoints, the advisor asks whether to also run `/graphify --update` for an LLM-powered re-index of your Markdown — opt-in, never automatic.
 
 ## How The Agents Divide Work
 
@@ -134,6 +114,17 @@ The full canonical sequence lives in `.claude/agents/advisor.md`.
 - **`CLAUDE.md`** — project-wide working principles, coding standards, architecture rules. Edit this to add your project's context, tech stack, and domain vocabulary.
 - **`src/`** — your project code (initially empty).
 - **`graphify-out/`** — knowledge graph artifacts (created on first commit that touches code files).
+
+## Bonus: Obsidian-ready
+
+The project folder doubles as an [Obsidian](https://obsidian.md) vault. Just open the project directory in Obsidian and it becomes one — no extra setup. You get:
+
+- A browsable, searchable view of every task file in `.workflow/tasks/`
+- Live backlinks between tasks via the `related: [<other-slug>]` frontmatter field
+- Full-text search across plans, implementations, and decisions
+- A graph view of how tasks connect to each other and to `CLAUDE.md`
+
+`.gitignore` already excludes `.obsidian/` (Obsidian's per-user metadata), so vault settings stay local while task content stays in version control.
 
 ## Acknowledgements
 
