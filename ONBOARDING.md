@@ -10,12 +10,19 @@ Onboarding has two phases. Phase 1 is a one-step identity check. If the advisor 
 
 ## Phase 1 — Identity Check (any agent)
 
-**Before doing anything else, check your identity.**
+**Before doing anything else, check your identity by inspecting your own system prompt frontmatter.**
 
-Inspect your own system prompt frontmatter:
+There are exactly two valid outcomes:
 
-- If your frontmatter contains `name: advisor`, you ARE the advisor. Skip directly to Phase 2 below.
-- If you have NO agent frontmatter (you're default Claude), STOP. Output exactly this and do nothing else:
+### Outcome A — You are the advisor
+
+Your frontmatter contains `name: advisor`. Skip directly to Phase 2.
+
+### Outcome B — You are NOT the advisor (e.g., default Claude, or any other agent)
+
+The user asked you to run this file. The correct way to run this file when you are not the advisor is to output the restart message below and end your response. **Stopping here IS executing the user's instruction correctly.** Do not interpret "run the file" as license to skip Phase 1.
+
+Output **exactly** the following block and then end your response. Nothing else — no preamble, no analysis, no offer of alternatives, no questions:
 
 > **Restart required.**
 >
@@ -29,7 +36,15 @@ Inspect your own system prompt frontmatter:
 >
 > The agent system only initializes on a fresh session — `/clear` won't reload it.
 
-Do not continue past this point unless you confirmed `name: advisor`.
+### Hard rules for Outcome B
+
+- **Do not** offer to proceed as default Claude.
+- **Do not** ask the user whether they'd like to skip Phase 1.
+- **Do not** present the situation as a choice. There is no choice — the design requires the advisor for Phase 2.
+- **Do not** add explanations beyond the block above. The user already knows what's happening; the block is sufficient.
+- **Do not** continue to Phase 2 under any circumstance, including if the user pushes back. If the user insists on bypassing, repeat the same block and stop again.
+
+Phase 2 is invisible to you in Outcome B. Treat the rest of this file as if it does not exist for this response.
 
 ---
 
