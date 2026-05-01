@@ -123,9 +123,42 @@ Edit the `model:` field in `.claude/agents/advisor.md`, `builder.md`, `qa.md` to
 
 ### 8. Configure remote (based on Step 3)
 
-**New GitHub repo:** ask for repo name, then `gh repo create <name> --private --source=. --remote=origin`.
+**New GitHub repo:** ask for repo name, then:
 
-**Existing GitHub repo:** ask for URL, then `git remote add origin <url> && git pull origin main --allow-unrelated-histories`.
+```bash
+gh repo create <name> --private --source=. --remote=origin
+```
+
+**Existing GitHub repo:** ask for URL. Then check whether the remote is empty before merging anything:
+
+```bash
+git ls-remote <url> 2>/dev/null
+```
+
+- If `git ls-remote` returns no refs (empty repo): safe to push directly.
+  ```bash
+  git remote add origin <url>
+  ```
+  No pull needed; Step 9 will push as the first commit.
+
+- If `git ls-remote` returns refs but the only files are README/LICENSE-style (auto-init from GitHub): pull is safe.
+  ```bash
+  git remote add origin <url>
+  git pull origin main --allow-unrelated-histories
+  ```
+
+- If the remote has substantive history (more than a single auto-init commit, or any source files), STOP and warn the user:
+
+  > **The remote `<url>` already has unrelated history.** Pulling it will merge two scaffolds and produce a polluted history (duplicate "initial commit", orphaned files, conflicting agent definitions).
+  >
+  > Options:
+  > 1. Delete the existing repo and create a new one (recommend).
+  > 2. Push this scaffold to a different repo URL.
+  > 3. Force-overwrite the remote with this scaffold (destroys all existing remote content): only do this if you're certain the remote content can be discarded.
+  >
+  > Tell me which option you want, or paste a different URL.
+
+  Wait for the user's choice before proceeding. Do not auto-merge.
 
 **Local only:** skip.
 

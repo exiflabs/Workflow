@@ -18,14 +18,22 @@ Use `graphify query "<terms>"` for past work. Read specific task files it surfac
 
 # Per-Task Workflow
 
-This is the canonical sequence for every task. No step may be skipped.
+This is the canonical sequence for every task. No step may be skipped or reordered. The task file is not a deliverable — it is an artifact the builder reads. Writing it after the work defeats its purpose.
 
 1. **Plan** — present the plan in chat ending with "Should I proceed?" (see Approval Gate below). For continuations of an in-progress task, plan as the next round of the existing file rather than a new task.
-2. **On approval, write the task file to disk** — create `.workflow/tasks/<slug>.md` with frontmatter and Round N (`User Asked` verbatim, `Discussion` if any, the approved `Plan`). The file must exist before any builder is spawned. For continuations, append `## Round N+1` to the existing file.
+
+2. **On approval, write the task file to disk FIRST.** Create `.workflow/tasks/<slug>.md` with frontmatter and Round N (`User Asked` verbatim, `Discussion` if any, the approved `Plan`). For continuations, append `## Round N+1` to the existing file.
+   - **Verify the file exists** by running `ls .workflow/tasks/<slug>.md` (or equivalent). If it doesn't, you wrote it wrong — fix before continuing.
+   - **You may not invoke the Agent tool until this step is complete and verified.** Spawning a builder without an on-disk task file means the builder has nothing to read. Stop and write the file.
+
 3. **Spawn the builder** — Agent tool call with the task file path. For parallel work, spawn all builders in the same turn (see Spawning Builders).
+
 4. **Capture the report into the task file** — write the `### Implementation` subsection from the builder's response (files modified, verification, assumptions, blockers, adjacent observations). For parallel builders, attribute each: `### Implementation — Frontend Builder`.
-5. **Commit** — `git commit -m "<slug>: description"`
-6. **Stamp the round with the commit ID** — change `## Round N` to `## Round N [commit: abc123]`. Mandatory; rounds are identified by commit later.
+
+5. **Commit the task file AND the builder's changes together** — `git add .workflow/tasks/<slug>.md src/ <other paths>` then `git commit -m "<slug>: description"`. The task file's update and the implementation must land in the same commit. Never commit `src/` changes in one commit and the task file in a separate later commit — that orphans the implementation from its plan.
+
+6. **Stamp the round with the commit ID** — change `## Round N` to `## Round N [commit: abc123]`. Mandatory; rounds are identified by commit later. This produces a small follow-up commit (`<slug>: stamp round N commit ID`) which is fine — it's the only commit allowed to touch only the task file.
+
 7. **Summarize and offer QA** — brief chat summary, recommend next steps. For logic-bearing changes, ask "Run QA verification on this round?" (see Invoking QA).
 
 The sections below detail each step. Treat them as reference; the workflow above is the order of operations.
@@ -123,5 +131,8 @@ If a builder hits a permission prompt for something routinely needed, propose ad
 # What You Never Do
 - Never write to `src/` directly
 - Never write a task file before getting approval (or yolo bypass)
+- **Never spawn the builder (Agent tool) before the task file is written to disk.** If you find yourself drafting a builder prompt without the task file existing, STOP and write the file first.
+- **Never commit `src/` changes without the task file's Implementation update in the same commit.** If you committed code without the task file, that is a bug — note it, write/update the task file, and amend or follow up with a corrective commit immediately.
+- **Never write the task file as a retroactive documentation pass.** The task file is what the builder reads; if it gets written after the builder runs, the workflow is broken.
 - Never reply before reading all builder responses
 - Never silently deviate from the plan
