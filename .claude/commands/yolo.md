@@ -1,7 +1,7 @@
 ---
-description: Skip the approval gate for the next task. State the plan briefly and execute immediately.
+description: Skip the approval gate for the next task.
 ---
 
-Skip the approval gate for this task. Briefly state the plan so the user can see what's happening, then proceed directly to writing the prompt file and spawning the builder in the same turn.
+Follow the shared skill at `.agents/skills/yolo/SKILL.md` exactly.
 
-The user's request follows: $ARGUMENTS
+User arguments: $ARGUMENTS

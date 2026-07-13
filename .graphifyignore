@@ -1,4 +1,7 @@
-# Agent runtime state (don't index)
+# Agent runtime memory (don't index as corpus)
+workflow/agent-memory/
+
+# Vendor adapter noise (role contracts live under workflow/roles/)
 .claude/agent-memory/
 
 # Obsidian vault metadata

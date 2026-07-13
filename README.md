@@ -1,132 +1,124 @@
 # Workflow
 
-A scaffold for serious work with Claude Code: an **advisor / builder / QA** agent team backed by a persistent task vault, an AST knowledge graph, and a deterministic per-task workflow that survives compaction, session restarts, and switching between machines.
+A scaffold for serious agentic work that is **vendor-equal**: the same **advisor / builder / QA** process on **Claude Code**, **Codex**, **Grok**, and any harness that loads project rules and can spawn subagents.
 
-If a single `CLAUDE.md` isn't enough structure for your project, but BMAD / Spec-Kit / GSD-style frameworks own too much of the process — this is a middle path. Three small agents, a folder of Markdown task files, a few slash commands. That's it.
+If a single rules file isn’t enough structure, but heavy frameworks own too much of the process — this is a middle path. Three roles, a folder of Markdown task files, shared skills. That’s it.
 
-## Quickstart (60 seconds)
+## Quickstart
 
-1. Clone the scaffold into a new, empty directory:
+1. Clone into a new empty directory:
 
 ```bash
 git clone https://github.com/exiflabs/Workflow.git my-project
 cd my-project
 ```
 
-2. Open the Claude desktop app and start a **new session** in the project folder (not a `/clear` of an existing one).
+2. Open the project in **your** coding agent (Claude Code, Codex, Grok, …) as a **root** session in this folder.
 
-3. Run the `/onboard` skill.
+3. Run onboard:
+   - Claude: `/onboard`
+   - Skills-based harnesses: invoke the `onboard` skill (`.agents/skills/onboard/`)
+   - Or ask: “run onboard”
 
-The onboarding command:
+Onboarding:
 
-- Verifies prerequisites (`git`, `gh`, `uv` / `pipx` / `pip`)
-- Installs [`graphify`](https://github.com/safishamsi/graphify) and its post-commit hook
-- Resets the scaffold's git history so your project starts clean
-- Optionally installs the [TDD skill](https://github.com/mattpocock/skills/tree/main/skills/engineering/tdd) by Matt Pocock
-- Asks which model each agent should use (advisor / builder / QA)
-- Configures a remote (new GitHub repo, existing repo, or local-only)
-- Makes the initial commit and pushes if a remote is set
+- Checks prerequisites (`git`, `gh`, Python installer)
+- Installs [graphify](https://github.com/safishamsi/graphify) and multi-platform skill hooks
+- Installs the post-commit AST graph hook
+- Resets scaffold git history for a clean project start
+- Optionally installs [TDD skill](https://github.com/mattpocock/skills/tree/main/skills/engineering/tdd)
+- Optional model pins (see `workflow/models.md`)
+- Remote setup + initial commit
 
-If the first `/onboard` outputs "Restart required", fully quit the Claude app (Cmd+Q on macOS), reopen the folder, and run `/onboard` again. The agent system bootstraps on session start; `/clear` won't reload it.
+The **root session is always the advisor**. Builder and QA are spawned subagents. No vendor-specific restart ritual is required.
 
-## Why This Exists
+## Why this exists
 
-Most coding-agent setups are either too loose (a `CLAUDE.md` and good intentions) or too rigid (fully scripted frameworks that fight you when reality diverges). This scaffold targets the failure modes that show up in the middle.
+### Context loss between sessions
 
-### #1: Context loss between sessions
+**Fix:** every task is `workflow/tasks/<slug>.md` with User Asked / Plan / Implementation per round. Committed with the repo.
 
-You close the session, come back tomorrow, the model has no memory of what you decided. You re-explain.
+### Agent freelancing
 
-**Fix:** every task has a Markdown file at `workflow/tasks/<slug>.md` with `User Asked`, `Plan`, and `Implementation` per round. The advisor reads any in-progress task file at startup and resumes. Task files are committed, so they travel with the repo.
+**Fix:** approval gate — plan ends with **Should I proceed?** No builder spawn until you affirm (unless `yolo`).
 
-### #2: The agent did whatever it wanted
+### Plan drift
 
-You ask for a thing, the agent gives you the thing plus three improvements you didn't ask for. Or it skips planning entirely and starts writing code.
+**Fix:** task file is written **before** the builder runs. Implementation is recorded in the same commit as code.
 
-**Fix:** a strict approval gate between plan and execution. The advisor presents a plan ending in "Should I proceed?". No writes, edits, or builder calls fire until you say yes. A `/yolo` bypass exists for one-off small changes.
+### No second pair of eyes
 
-### #3: Plans drift mid-build
+**Fix:** separate QA subagent. Verdicts: `PASS` / `PASS WITH NOTES` / `ISSUES FOUND`.
 
-The agent ships code that doesn't match the plan, and later you can't tell what was decided vs. what was added on the fly.
+### Blank-slate sessions
 
-**Fix:** the task file is written to disk *before* the builder is spawned. The builder reads the plan, executes within it, and reports back. The advisor records the implementation in the same task file in the same commit as the source changes. Plan and code never separate.
+**Fix:** graphify AST graph on commit (`graphify-out/`); query with `graphify query "…"`. Semantic re-index of docs is opt-in only.
 
-### #4: No independent verification
+## Vendor layout (equal)
 
-The agent writes the code AND the tests AND tells you it works. No second pair of eyes.
+| Concern | Location |
+|---------|----------|
+| Project rules | `AGENTS.md` (canonical). `CLAUDE.md` → symlink to the same file |
+| Role contracts | `workflow/roles/{advisor,builder,qa}.md` |
+| Memory | `workflow/agent-memory/{advisor,builder,qa}/MEMORY.md` |
+| Models guide | `workflow/models.md` |
+| Shared skills | `.agents/skills/` |
+| Claude adapters | `.claude/agents/`, `.claude/commands/` |
+| Codex adapters | `.codex/agents/{builder,qa}.toml` (advisor = root + `AGENTS.md`) |
+| Grok adapters | `.grok/agents/` |
 
-**Fix:** a separate QA agent. After a logic-bearing round, the advisor offers QA. QA reads the task file, runs tests, inspects code, and returns `PASS` / `PASS WITH NOTES` / `ISSUES FOUND` with severity-tagged findings. QA can edit tests but never production code.
+Process and role behavior live in **one** place. Platform folders only wire tools/models.
 
-### #5: The agent forgets the project
+## How roles divide work
 
-Each session is a blank slate. The agent doesn't know which functions exist or what the domain language is.
+| Role | Writes | Reads | Talks to |
+|------|--------|-------|----------|
+| **Advisor** (root) | `workflow/tasks/`, config, memory | Everything | User |
+| **Builder** | `src/` | Task file, code, graphify | Advisor (report) |
+| **QA** | `src/tests/` only | Task file, code, graphify | Advisor (report) |
 
-**Fix:** every commit triggers [graphify](https://github.com/safishamsi/graphify), which extracts an AST graph into `graphify-out/`. Agents query it with `graphify query "<terms>"` for codebase context before starting work — free, AST-only, no LLM. At task-completion checkpoints, the advisor asks whether to also run `/graphify --update` for an LLM-powered re-index of your Markdown — opt-in, never automatic.
+## Per-task flow
 
-## How The Agents Divide Work
+1. User describes work to the advisor  
+2. Plan in chat → **Should I proceed?**  
+3. On yes: write `workflow/tasks/<slug>.md` for this round  
+4. Spawn builder with that path  
+5. Record Implementation; commit task file + `src/` together  
+6. Offer QA for logic-bearing changes  
+7. On complete: mark done; ask about Graphify semantic update (never auto)
 
-| Role | Writes to | Reads from | Talks to |
-|------|-----------|------------|----------|
-| **Advisor** | `workflow/tasks/`, root config files, agent memory | Everything | The user |
-| **Builder** | `src/` (code + tests) | Task file, source code, graphify | Advisor (via Agent tool reports) |
-| **QA** | `src/tests/` only | Task file, source code, graphify | Advisor (via Agent tool reports) |
+Canonical detail: `workflow/roles/advisor.md`.
 
-The advisor never touches `src/`. The builder never writes to the task vault. QA never modifies production code. Each agent has one job and a clear boundary.
+## Skills / commands
 
-## Per-Task Workflow
+| Action | Shared skill | Claude slash |
+|--------|--------------|--------------|
+| First-time setup | `onboard` | `/onboard` |
+| Active role | `whoami` | `/whoami` |
+| Pin model | `set-model` | `/set-model <agent> <id>` |
+| Skip gate once | `yolo` | `/yolo` |
+| Knowledge graph | graphify skill (installed) | `/graphify` |
 
-Every task follows the same shape:
+Recommended models (Opus 4.8, Sonnet 5, 5.6 family, Fable 5, Grok 4.5): `workflow/models.md`. Default is **inherit**.
 
-1. User describes the work to the advisor
-2. Advisor presents a plan in chat ending with "Should I proceed?"
-3. User approves
-4. Advisor writes `workflow/tasks/<slug>.md` with frontmatter, a timestamped round header, `User Asked` (verbatim), and the approved `Plan`
-5. Advisor spawns the builder via the Agent tool, passing the task file path
-6. Builder reads the file, executes in `src/`, returns a structured report
-7. Advisor records the report as the `### Implementation` subsection
-8. Advisor commits the task file + `src/` changes together (one commit per round)
-9. Advisor offers QA verification for logic-bearing changes
-10. On task completion, advisor asks whether to run `/graphify --update`
+## Graphify
 
-The full canonical sequence lives in `.claude/agents/advisor.md`.
+```bash
+uv tool install graphifyy   # or pipx / pip
+graphify install --platform claude
+graphify install --platform codex
+graphify install --platform agents
+graphify hook install
+```
 
-## Reference
+- **Free:** post-commit AST rebuild of code into `graphify-out/`
+- **Opt-in (API cost):** semantic update for Markdown/docs when you agree
 
-### Agents
+## Obsidian
 
-- **advisor** — converses with the user, plans tasks, writes the task vault, coordinates builders, runs QA. Never executes code in `src/`.
-- **builder** — executes plans in `src/`. Reads the task file, does the work, reports back. Never converses with the user.
-- **qa** — independently verifies builder output. Runs tests, inspects code, returns a verdict with severity-tagged findings. Can edit tests; never touches production code.
-
-### Slash commands
-
-- **`/onboard`** — first-time project setup. Idempotent.
-- **`/whoami`** — print which agent is active in this session. Returns "default Claude" if the agent system didn't load.
-- **`/set-model`** — change a per-agent model. Usage: `/set-model advisor opus`. Models: `opus`, `sonnet`, `haiku`, `inherit`.
-- **`/yolo`** — skip the approval gate for a single task.
-- **`/graphify`** — query the project knowledge graph (added by `graphify install`). `/graphify --update` re-indexes Markdown using an LLM (uses API calls).
-
-### Files and folders
-
-- **`workflow/tasks/`** — one Markdown file per task, slug-named (`fix-login-bug.md`). The source of truth for project history.
-- **`.claude/agent-memory/`** — per-agent persistent memory, committed to version control.
-- **`.claude/skills/tdd/`** — optional TDD red-green-refactor skill (installed during onboarding if you opt in).
-- **`CLAUDE.md`** — project-wide working principles, coding standards, architecture rules. Edit this to add your project's context, tech stack, and domain vocabulary.
-- **`src/`** — your project code (initially empty).
-- **`graphify-out/`** — knowledge graph artifacts (created on first commit that touches code files).
-
-## Bonus: Obsidian-ready
-
-The project folder doubles as an [Obsidian](https://obsidian.md) vault. Just open the project directory in Obsidian and it becomes one — no extra setup. You get:
-
-- A browsable, searchable view of every task file in `workflow/tasks/`
-- Live backlinks between tasks via the `related: [<other-slug>]` frontmatter field
-- Full-text search across plans, implementations, and decisions
-- A graph view of how tasks connect to each other and to `CLAUDE.md`
-
-`.gitignore` already excludes `.obsidian/` (Obsidian's per-user metadata), so vault settings stay local while task content stays in version control.
+Open the project folder as a vault. Task files and `related:` frontmatter give backlinks and graph view. `.obsidian/` is gitignored.
 
 ## Acknowledgements
 
-- The optional TDD skill is from Matt Pocock's [Skills For Real Engineers](https://github.com/mattpocock/skills). When enabled, the builder follows red-green-refactor with vertical slicing on every behavior change. Highly recommended.
-- [`graphify`](https://github.com/safishamsi/graphify) provides the codebase knowledge graph that agents query for context.
+- Optional TDD skill: [Matt Pocock / skills](https://github.com/mattpocock/skills)
+- Knowledge graph: [graphify](https://github.com/safishamsi/graphify)

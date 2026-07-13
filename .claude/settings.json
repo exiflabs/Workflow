@@ -9,15 +9,24 @@
       "Edit(workflow/**)",
       "Write(src/**)",
       "Edit(src/**)",
-      "Write(decisions-log.md)",
-      "Edit(decisions-log.md)",
-      "Edit(CLAUDE.md)",
+      "Write(AGENTS.md)",
+      "Edit(AGENTS.md)",
+      "Write(.agents/**)",
+      "Edit(.agents/**)",
+      "Write(.claude/**)",
+      "Edit(.claude/**)",
+      "Write(.codex/**)",
+      "Edit(.codex/**)",
+      "Write(.grok/**)",
+      "Edit(.grok/**)",
       "Edit(.claude/settings.json)",
       "Bash(git:*)",
       "Bash(graphify:*)",
       "Bash(mkdir:*)",
       "Bash(ls:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(test:*)",
+      "Bash(readlink:*)"
     ]
   }
 }
